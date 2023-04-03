@@ -60,7 +60,7 @@ RMSE_LR= np.sqrt(metrics.mean_squared_error(y2,y2_pred_LR))
 cvRMSE_LR=RMSE_LR/np.mean(y2)
 NMBE_LR=MBE_LR/np.mean(y2)
 #Load RF model
-with open('reg_f.pkl','rb') as file:
+with open('reg_DT.pkl','rb') as file:
     RF_model2=pickle.load(file)
 
 y2_pred_RF = RF_model2.predict(X2)
@@ -74,9 +74,9 @@ cvRMSE_RF=RMSE_RF/np.mean(y2)
 NMBE_RF=MBE_RF/np.mean(y2)
 
 # Create data frames with predictin results and error metrics 
-d = {'Methods': ['Linear Regression','Random Forest'], 'MAE': [MAE_LR, MAE_RF],'MBE': [MBE_LR, MBE_RF], 'MSE': [MSE_LR, MSE_RF], 'RMSE': [RMSE_LR, RMSE_RF],'cvMSE': [cvRMSE_LR, cvRMSE_RF],'NMBE': [NMBE_LR, NMBE_RF]}
+d = {'Methods': ['Linear Regression','Decision Tree'], 'MAE': [MAE_LR, MAE_RF],'MBE': [MBE_LR, MBE_RF], 'MSE': [MSE_LR, MSE_RF], 'RMSE': [RMSE_LR, RMSE_RF],'cvMSE': [cvRMSE_LR, cvRMSE_RF],'NMBE': [NMBE_LR, NMBE_RF]}
 df_metrics = pd.DataFrame(data=d)
-d={'Date':df['Date'].values, 'LinearRegression': y2_pred_LR,'RandomForest': y2_pred_RF}
+d={'Date':df['Date'].values, 'LinearRegression': y2_pred_LR,'Decision Tree': y2_pred_RF}
 df_forecast=pd.DataFrame(data=d)
 
 # merge real and forecast results and creates a figure with it
