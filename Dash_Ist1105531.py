@@ -28,6 +28,7 @@ df2=df.iloc[:,2:7]
 X2=df2.values
 fig1 = px.line(df, x="Date", y=df.columns[1:7])# Creates a figure with the raw data
 
+
 trace1 = go.Box(x=df['Power_kW'], name='Power')
 trace2 = go.Box(x=df['Hour'], name='Hour')
 trace3 = go.Box(x=df['temp_C'], name='Temperature C')
@@ -52,6 +53,8 @@ with open('reg_L.pkl','rb') as file:
     LR_model2=pickle.load(file)
 
 y2_pred_LR = LR_model2.predict(X2)
+
+
 
 #Evaluate errors
 MAE_LR=metrics.mean_absolute_error(y2,y2_pred_LR) 
@@ -85,6 +88,9 @@ df_results=pd.merge(df_real,df_forecast,on='Date')
 
 fig2 = px.line(df_results,x=df_results.columns[0],y=df_results.columns[1:4])
 
+fig6 = px.scatter(df_results,x=df_results.columns[1],y=df_results.columns[2])
+fig7 = px.scatter(df_results,x=df_results.columns[1],y=df_results.columns[3])
+
 # Define auxiliary functions
 def generate_table(dataframe, max_rows=10):
     return html.Table([
@@ -102,11 +108,26 @@ def generate_table(dataframe, max_rows=10):
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 server = app.server
 app.layout = html.Div([
-    html.H1('IST South Building Energy Forecast tool (kWh)',style={'background-image': 'url(https://assets.taraenergy.com/wp-content/uploads/2021/02/renewable-energy-technology-defined-solar-panels.jpg)'}),
+    html.H1('IST South Building Energy Forecast Tool (kWh)',style={'backgroundColor': '#000000','color': 'white','textAlign': 'center'}),
     dcc.Tabs(id='tabs', value='tab-1', children=[
-        dcc.Tab(label='Raw Data', value='tab-1'),dcc.Tab(label='Data Exploration', value='tab-4'),
-        dcc.Tab(label='Forecast', value='tab-2'),
-        dcc.Tab(label='Error Metrics', value='tab-3'),
+        dcc.Tab(label='RAW DATA', value='tab-1',style={
+                'backgroundColor': '#0000FF',
+                'color': 'black',
+                'fontWeight': 'bold'}),
+        dcc.Tab(label='DATA EXPLORATION', value='tab-4',style={
+                'backgroundColor': '#00FF00',
+                'color': 'black',
+                'fontWeight': 'bold'
+            }),
+        dcc.Tab(label='FORECAST', value='tab-2',style={
+                'backgroundColor': '#0000FF',
+                'color': 'black',
+                'fontWeight': 'bold'}),
+        dcc.Tab(label='ERROR METRICS', value='tab-3',style={
+                'backgroundColor': '#00FF00',
+                'color': 'black',
+                'fontWeight': 'bold'
+            }),
     ]),
     html.Div(id='tabs-content')
 ])
@@ -117,16 +138,17 @@ app.layout = html.Div([
 def render_content(tab):
     if tab == 'tab-1':
         return html.Div([
-            html.H4('South Tower Raw Data'),
+            html.H4('South Tower Raw Data 2019',style={
+        'color': 'blue'}),
             dcc.Graph(
                 id='yearly-data',
                 figure=fig1,
             ),
-            
         ])
     elif tab == 'tab-4':
         return html.Div([
-html.Label('Please Select the Variable for BoxPlot'),dcc.Dropdown(
+html.H4('Please Select the Variable for BoxPlot',style={
+'color': 'green'}),dcc.Dropdown(
         id='my-dropdown',
         options=[{'label': k, 'value': k} for k in options.keys()],
         value='Power'
@@ -136,7 +158,8 @@ html.Label('Please Select the Variable for BoxPlot'),dcc.Dropdown(
     
     elif tab == 'tab-2':
         return html.Div([
-            html.H4('South Tower Electricity Forecast (kWh)'),
+            html.H4('South Tower Electricity Forecast (kWh)',style={
+        'color': 'blue'}),
             dcc.Graph(
                 id='yearly-data',
                 figure=fig2,
@@ -144,17 +167,33 @@ html.Label('Please Select the Variable for BoxPlot'),dcc.Dropdown(
             
         ])
     elif tab == 'tab-3':
-        return html.Div([
-            html.H4('South Tower Electricity Forecast Error Metrics'),
-                        generate_table(df_metrics)
-        ])
-   
+        return html.Div([html.H4('Please Select the type of Result Output you want from Dropdown List',style={
+        'color': 'green'}),
+    dcc.Dropdown(
+        id='dropdown',
+        options=[{'label': i, 'value': i} for i in ['Scatter Plot - Linear Regression', 'Scatter Plot - Decision Tree','Error Metrics Table']],
+        value='Graph',
+    ),
+    html.Div(id='output-container')
+])
+    
+    
 @app.callback(
     dash.dependencies.Output('my-graph', 'figure'),
     [dash.dependencies.Input('my-dropdown', 'value')])
 def update_graph(selected_option):
     return {'data': [options[selected_option]]}
 
+@app.callback(
+    dash.dependencies.Output('output-container', 'children'),
+    [dash.dependencies.Input('dropdown', 'value')])
+def update_output(value):
+    if value == 'Scatter Plot - Linear Regression':
+        return dcc.Graph(figure=fig6)
+    elif value == 'Scatter Plot - Decision Tree':
+        return dcc.Graph(figure=fig7)
+    elif value == 'Error Metrics Table':
+        return generate_table(df_metrics)
 
 
 if __name__ == '__main__':
